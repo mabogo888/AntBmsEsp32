@@ -1,6 +1,6 @@
 //#include <Arduino.h>
 #include "BluetoothSerial.h"
-#include "ArduinoJson.h"
+// #include "ArduinoJson.h"
 
 BluetoothSerial SerialBT;
 byte bms_addresses[3][6] = {
@@ -127,7 +127,7 @@ void MyBluetoothDisconnect() {
 bool DecodeData(byte* address, byte* data, int length){
 
     if (length == 140) {
-      DynamicJsonDocument doc(1024);
+      // DynamicJsonDocument doc(1024);
       auto ant_get_16bit = [&](size_t i) -> uint16_t {
           return (uint16_t(data[i + 0]) << 8) | (uint16_t(data[i + 1]) << 0);
         };
@@ -141,7 +141,11 @@ bool DecodeData(byte* address, byte* data, int length){
       Serial.println("Starting decode data "  + byte_to_str(data,140));
       
       float bms_v = ant_get_16bit(4) * 0.1f;
-      doc["bms_v"] = bms_v;
+      Serial.print("TotalVoltage = ") ;
+      Serial.print(bms_v) ;
+      Serial.print("\n") ;
+
+      // doc["bms_v"] = bms_v;
       //sensor.addField("bms_v", bms_v);
 
         //   6    0x10 0x2A: Cell voltage 1        4138 * 0.001 = 4.138V                    0.001 V
@@ -153,13 +157,13 @@ bool DecodeData(byte* address, byte* data, int length){
         //  66    0x00 0x00: Cell voltage 31                                                0.001 V
         //  68    0x00 0x00: Cell voltage 32                                                0.001 V
         uint8_t cell_count = data[123];
-        doc["cell_count"] = cell_count;
+        // doc["cell_count"] = cell_count;
         // sensor.addField("cell_count", cell_count);
         for (uint8_t i = 0; i < cell_count; i++) {
           
           float cell_v = (float) ant_get_16bit(i * 2 + 6) * 0.001f;
 
-          doc["cell_amps_"+String(i)] = cell_v;
+          // doc["cell_amps_"+String(i)] = cell_v;
           // sensor.addField("cell_amps_"+String(i), cell_v);
 
         }
@@ -179,36 +183,36 @@ bool DecodeData(byte* address, byte* data, int length){
 
           //  74    0x64: SOC                                  100 %                          1.0 %
         uint8_t soc = (uint8_t) data[74];
-        doc["soc"] = soc;
+        // doc["soc"] = soc;
         // sensor.addField("soc", soc);
 
           //  75    0x02 0x53 0x17 0xC0: Total Battery Capacity Setting   39000000            0.000001 Ah
         
         
         float total_battery_capacity = (float) ant_get_32bit(75) * 0.000001f;
-        doc["total_battery_capacity"]  = total_battery_capacity;
+        // doc["total_battery_capacity"]  = total_battery_capacity;
         // sensor.addField("total_battery_capacity", total_battery_capacity);
 
           //  79    0x02 0x53 0x06 0x11: Battery Capacity Remaining                           0.000001 Ah
         
         float remain_ah = (float) ant_get_32bit(79) * 0.000001f;
-        doc["remain_ah"] = remain_ah;
+        // doc["remain_ah"] = remain_ah;
         // sensor.addField("remain_ah", remain_ah);
 
           //  83    0x00 0x08 0xC7 0x8E: Battery Cycle Capacity                               0.001 Ah
         float battery_cycle_capacity = (float) ant_get_32bit(83) * 0.001f;
-        doc["battery_cycle_capacity"] = battery_cycle_capacity;
+        // doc["battery_cycle_capacity"] = battery_cycle_capacity;
         // sensor.addField("battery_cycle_capacity", battery_cycle_capacity);
           //  87    0x00 0x08 0x57 0x20: Uptime in seconds     546.592s                       1.0 s
         
         float total_runtime = (float) ant_get_32bit(87);
-        doc["total_runtime"] = total_runtime;
+        // doc["total_runtime"] = total_runtime;
         // sensor.addField("total_runtime", total_runtime);
 
 
         for (uint8_t i = 0; i < 6; i++) {
           uint8_t sensor_temp = (uint8_t) ant_get_16bit(i * 2 + 91);
-          doc["sensor_temp_"+String(i)] = sensor_temp;
+          // doc["sensor_temp_"+String(i)] = sensor_temp;
           // sensor.addField("sensor_temp_"+String(i),sensor_temp);
         }
 
@@ -230,7 +234,7 @@ bool DecodeData(byte* address, byte* data, int length){
           charge_mosfet_status_text_sensor = "Unknown";
         }
         byte charge_status =  (byte) (raw_charge_mosfet_status == 0x01);
-        doc["charge_status"] = charge_status;
+        // doc["charge_status"] = charge_status;
         // sensor.addField("charge_status", charge_status);
 
         //  104   0x01: Discharge MOSFET Status
@@ -243,7 +247,7 @@ bool DecodeData(byte* address, byte* data, int length){
           discharge_mosfet_status_text_sensor =  "Unknown";
         }
         byte discharge_status = (byte) (raw_discharge_mosfet_status == 0x01);
-        doc["discharge_status"] = discharge_status;
+        // doc["discharge_status"] = discharge_status;
         // sensor.addField("discharge_status", discharge_status);
 
         //  105   0x00: Balancer Status
@@ -257,7 +261,7 @@ bool DecodeData(byte* address, byte* data, int length){
           balancer_status_text_sensor = "Unknown";
         }
         byte balance_status = (byte) (raw_balancer_status == 0x01);
-        doc["balance_status"] = balance_status ;
+        // doc["balance_status"] = balance_status ;
         // sensor.addField("balance_status", balance_status);
 
 
@@ -268,44 +272,44 @@ bool DecodeData(byte* address, byte* data, int length){
         
 
           float power =  (float) (int32_t) ant_get_32bit(111);
-          doc["power"] = power;
+          // doc["power"] = power;
           // sensor.addField("power", power);
 
           float bms_current = (float) power/bms_v;
-          doc["bms_current"]  = bms_current;
+          // doc["bms_current"]  = bms_current;
           // sensor.addField("bms_current", bms_current);
           //float power_sensor = total_voltage * current;
           
           float tire_length = (float) ant_get_16bit(106);
-          doc["tire_length"] = tire_length;
+          // doc["tire_length"] = tire_length;
           // sensor.addField("tire_length", tire_length);
 
 
           float pulses_week = (float) ant_get_16bit(108);
-          doc["pulses_week"] = pulses_week;
+          // doc["pulses_week"] = pulses_week;
           // sensor.addField("pulses_week", pulses_week);
 
 
           //  115   0x0D: Cell with the highest voltage        Cell 13
         float max_voltage_cell = (float) data[115];
-        doc["max_voltage_cell"] = max_voltage_cell;
+        // doc["max_voltage_cell"] = max_voltage_cell;
         // sensor.addField("max_voltage_cell", max_voltage_cell);
 
         //  116   0x10 0x2C: Maximum cell voltage            4140 * 0.001 = 4.140V          0.001 V
         float cell_max = (float) ant_get_16bit(116) * 0.001f;
-        doc["cell_max"] = cell_max;
+        // doc["cell_max"] = cell_max;
         // sensor.addField("cell_max", cell_max);
         //  118   0x09: Cell with the lowest voltage         Cell 9
         float min_voltage_cell = (float) data[118];
-        doc["min_voltage_cell"] = min_voltage_cell;
+        // doc["min_voltage_cell"] = min_voltage_cell;
         // sensor.addField("min_voltage_cell", min_voltage_cell);
         //  119   0x10 0x26: Minimum cell voltage            4134 * 0.001 = 4.134V          0.001 V
         float cell_min = (float) ant_get_16bit(119) * 0.001f;
-        doc["cell_min"] = cell_min;
+        // doc["cell_min"] = cell_min;
         // sensor.addField("cell_min", cell_min);
         //  121   0x10 0x28: Average cell voltage            4136 * 0.001 = 4.136V          0.001 V
         float cell_avg = (float) ant_get_16bit(121) * 0.001f;
-        doc["cell_avg"] = cell_avg;
+        // doc["cell_avg"] = cell_avg;
         // sensor.addField("cell_avg",cell_avg );
 
         //  123   0x0D: Battery strings                      13
@@ -319,7 +323,7 @@ bool DecodeData(byte* address, byte* data, int length){
         //  138   0x0B 0x00: CRC
    
       Serial.println("battery_strings_sensor = "+ String(battery_strings_sensor));
-      serializeJsonPretty(doc, Serial);
+      // serializeJsonPretty(doc, Serial);
       return true;
     }
     else {
